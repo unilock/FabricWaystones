@@ -13,6 +13,7 @@ import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Hand;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.registry.Registry;
 import org.jetbrains.annotations.Nullable;
 import wraith.waystones.Waystones;
@@ -27,6 +28,7 @@ import wraith.waystones.util.Utils;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -129,7 +131,7 @@ public class UniversalWaystoneGui extends PagedGui {
     private void updateWaystones() {
         this.sortedWaystones = new ArrayList<>();
         if (((PlayerEntityMixinAccess) player).shouldViewDiscoveredWaystones()) {
-            this.sortedWaystones.addAll(((PlayerAccess) player).getHashesSorted());
+            this.sortedWaystones.addAll(((PlayerEntityMixinAccess) player).getDiscoveredWaystones());
         }
         if (((PlayerEntityMixinAccess) player).shouldViewGlobalWaystones()) {
             for (String waystone : Waystones.WAYSTONE_STORAGE.getGlobals()) {
@@ -138,12 +140,15 @@ public class UniversalWaystoneGui extends PagedGui {
                 }
             }
         }
-        this.sortedWaystones.sort(Comparator.comparing(a -> Waystones.WAYSTONE_STORAGE.getWaystoneData(a).getWaystoneName()));
+        this.sortedWaystones.sort(Comparator.comparing(a -> {
+            var data = Waystones.WAYSTONE_STORAGE.getWaystoneData(a);
+            return data != null ? data.getWaystoneName() : "";
+        }));
     }
 
     @Override
     protected int getPageAmount() {
-        return this.sortedWaystones.size() / PAGE_SIZE;
+        return MathHelper.ceil(this.sortedWaystones.size() / (double) PAGE_SIZE);
     }
 
     @Override
