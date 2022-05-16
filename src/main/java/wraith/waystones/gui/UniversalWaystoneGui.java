@@ -1,11 +1,10 @@
 package wraith.waystones.gui;
 
 import eu.pb4.sgui.api.ClickType;
-import eu.pb4.sgui.api.elements.GuiElement;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -28,7 +27,6 @@ import wraith.waystones.util.Utils;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -78,14 +76,14 @@ public class UniversalWaystoneGui extends PagedGui {
                         case 1 -> DisplayElement.previousPage(this);
                         case 3 -> DisplayElement.nextPage(this);
                         case 5 -> getCost();
-                        case 7 -> DisplayElement.of(
+                        case 7 -> Permissions.check(this.player, "waystones.can_edit_any", 3) || this.player.getUuid().equals(waystone.getOwner()) ? DisplayElement.of(
                                 new GuiElementBuilder(Items.REDSTONE)
                                         .setName(new TranslatableText("waystones.config.tooltip.config"))
                                         .setCallback((x, y, z) -> {
                                             playClickSound(this.player);
                                             WaystoneSettingsGui.open(user, waystone);
                                         })
-                        );
+                        ) : DisplayElement.filler();
                         default -> DisplayElement.filler();
                     };
                 }

@@ -1,6 +1,8 @@
 package wraith.waystones.util;
 
 import com.mojang.datafixers.util.Pair;
+import eu.pb4.sgui.api.gui.SlotGuiInterface;
+import eu.pb4.sgui.virtual.VirtualScreenHandlerInterface;
 import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -18,11 +20,9 @@ import net.minecraft.util.registry.RegistryEntry;
 import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
 import wraith.waystones.Waystones;
+import wraith.waystones.gui.UniversalWaystoneGui;
 import wraith.waystones.item.LocalVoidItem;
 import wraith.waystones.mixin.StructurePoolAccessor;
-import wraith.waystones.screen.AbyssScreenHandler;
-import wraith.waystones.screen.PocketWormholeScreenHandler;
-import wraith.waystones.screen.WaystoneBlockScreenHandler;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -287,12 +287,8 @@ public final class Utils {
     }
 
     public static TeleportSources getTeleportSource(PlayerEntity player) {
-        if (player.currentScreenHandler instanceof AbyssScreenHandler) {
-            return TeleportSources.ABYSS_WATCHER;
-        } else if (player.currentScreenHandler instanceof PocketWormholeScreenHandler) {
-            return TeleportSources.POCKET_WORMHOLE;
-        } else if (player.currentScreenHandler instanceof WaystoneBlockScreenHandler) {
-            return TeleportSources.WAYSTONE;
+        if (player.currentScreenHandler instanceof VirtualScreenHandlerInterface e && e.getGui() instanceof UniversalWaystoneGui gui) {
+            return gui.getSource();
         } else {
             for (var hand : Hand.values()) {
                 if (!(player.getStackInHand(hand).getItem() instanceof LocalVoidItem)) continue;

@@ -3,6 +3,7 @@ package wraith.waystones.gui;
 import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.AnvilInputGui;
 import eu.pb4.sgui.api.gui.SimpleGui;
+import me.lucko.fabric.api.permissions.v0.Permissions;
 import net.minecraft.item.Items;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -10,6 +11,7 @@ import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Formatting;
 import wraith.waystones.Waystones;
 import wraith.waystones.block.WaystoneBlockEntity;
+import wraith.waystones.util.Config;
 
 public class WaystoneSettingsGui extends SimpleGui {
     private final WaystoneBlockEntity waystone;
@@ -28,16 +30,20 @@ public class WaystoneSettingsGui extends SimpleGui {
     }
 
     protected void updateDisplay() {
-        this.setSlot(0, new GuiElementBuilder(waystone.isGlobal() ? Items.ENDER_EYE : Items.ENDER_PEARL)
-                .setName(new TranslatableText("waystones.config.global"))
-                .setCallback((x, y, z) -> {
-                    Waystones.WAYSTONE_STORAGE.toggleGlobal(waystone.getHash());
-                    PagedGui.playClickSound(this.player);
-                    this.updateDisplay();
-                })
-        );
+        int i = 0;
 
-        this.setSlot(1, new GuiElementBuilder(Items.SKELETON_SKULL)
+        if (Config.getInstance().canPlayersToggleGlobal() || Permissions.check(this.player, "waystones.set_global", 3)) {
+            this.setSlot(i++, new GuiElementBuilder(waystone.isGlobal() ? Items.ENDER_EYE : Items.ENDER_PEARL)
+                    .setName(new TranslatableText("waystones.config.global"))
+                    .setCallback((x, y, z) -> {
+                        Waystones.WAYSTONE_STORAGE.toggleGlobal(waystone.getHash());
+                        PagedGui.playClickSound(this.player);
+                        this.updateDisplay();
+                    })
+            );
+        }
+
+        this.setSlot(i++, new GuiElementBuilder(Items.SKELETON_SKULL)
                 .setName(new TranslatableText("waystones.config.tooltip.revoke_ownership").formatted(Formatting.WHITE))
                 .setCallback((x, y, z) -> {
                     Waystones.WAYSTONE_STORAGE.setOwner(waystone.getHash(), null);
@@ -46,11 +52,11 @@ public class WaystoneSettingsGui extends SimpleGui {
                 })
         );
 
-        this.setSlot(2, new GuiElementBuilder(Items.NAME_TAG)
+        this.setSlot(i++, new GuiElementBuilder(Items.NAME_TAG)
                 .setName(new TranslatableText("polyport.waystones.rename").formatted(Formatting.WHITE))
                 .setCallback((x, y, z) -> {
                     PagedGui.playClickSound(this.player);
-                    openRanaming(this.player, this.waystone);
+                    openRenaming(this.player, this.waystone);
                 })
         );
 
@@ -63,7 +69,7 @@ public class WaystoneSettingsGui extends SimpleGui {
         );
     }
 
-    private static void openRanaming(ServerPlayerEntity player, WaystoneBlockEntity waystone) {
+    private static void openRenaming(ServerPlayerEntity player, WaystoneBlockEntity waystone) {
         var ui = new AnvilInputGui(player, false);
         ui.setTitle(new TranslatableText("polyport.waystones.rename"));
         ui.setDefaultInputValue(waystone.getWaystoneName());
