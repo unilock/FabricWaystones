@@ -9,12 +9,20 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.structure.pool.StructurePool;
 import net.minecraft.structure.pool.StructurePoolElement;
+import net.minecraft.structure.processor.StructureProcessorList;
+import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.registry.Registry;
+import net.minecraft.util.registry.RegistryEntry;
+import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.World;
 import wraith.waystones.Waystones;
+import wraith.waystones.item.LocalVoidItem;
 import wraith.waystones.mixin.StructurePoolAccessor;
+import wraith.waystones.screen.AbyssScreenHandler;
+import wraith.waystones.screen.PocketWormholeScreenHandler;
+import wraith.waystones.screen.WaystoneBlockScreenHandler;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -31,10 +39,17 @@ public final class Utils {
 
     public static final Random random = new Random();
     public static final DecimalFormat df = new DecimalFormat("#.##");
+    private static final RegistryKey<StructureProcessorList> EMPTY_PROCESSOR_LIST_KEY = RegistryKey.of(
+            Registry.STRUCTURE_PROCESSOR_LIST_KEY, new Identifier("minecraft", "empty"));
 
     public static int getRandomIntInRange(int min, int max) {
         if (min == max) {
             return min;
+        }
+        if (min > max) {
+            int temp = min;
+            min = max;
+            max = temp;
         }
         return random.nextInt((max - min) + 1) + min;
     }
@@ -66,19 +81,23 @@ public final class Utils {
     }
 
     public static void addToStructurePool(MinecraftServer server, Identifier village, Identifier waystone, int weight) {
+
+        RegistryEntry<StructureProcessorList> emptyProcessorList = server.getRegistryManager()
+                .get(Registry.STRUCTURE_PROCESSOR_LIST_KEY)
+                .entryOf(EMPTY_PROCESSOR_LIST_KEY);
+
         var poolGetter = server.getRegistryManager()
                 .get(Registry.STRUCTURE_POOL_KEY)
-                .getEntrySet().stream()
-                .filter(p -> p.getKey().getValue().equals(village))
-                .findFirst();
+                .getOrEmpty(village);
+
         if (poolGetter.isEmpty()) {
             Waystones.LOGGER.error("Cannot add to " + village + " as it cannot be found!");
             return;
         }
-        var pool = poolGetter.get().getValue();
+        var pool = poolGetter.get();
 
         var pieceList = ((StructurePoolAccessor) pool).getElements();
-        var piece = StructurePoolElement.ofSingle(waystone.toString()).apply(StructurePool.Projection.RIGID);
+        var piece = StructurePoolElement.ofProcessedSingle(waystone.toString(), emptyProcessorList).apply(StructurePool.Projection.RIGID);
 
         var list = new ArrayList<>(((StructurePoolAccessor) pool).getElementCounts());
         list.add(Pair.of(piece, weight));
@@ -161,7 +180,7 @@ public final class Utils {
                     return false;
                 }
                 if (takeCost) {
-                    player.experienceLevel -= amount;
+                    player.addExperienceLevels(-amount);
                 }
                 return true;
             case "item":
@@ -267,4 +286,19 @@ public final class Utils {
         return world.getRegistryKey().getValue().toString();
     }
 
+    public static TeleportSources getTeleportSource(PlayerEntity player) {
+        if (player.currentScreenHandler instanceof AbyssScreenHandler) {
+            return TeleportSources.ABYSS_WATCHER;
+        } else if (player.currentScreenHandler instanceof PocketWormholeScreenHandler) {
+            return TeleportSources.POCKET_WORMHOLE;
+        } else if (player.currentScreenHandler instanceof WaystoneBlockScreenHandler) {
+            return TeleportSources.WAYSTONE;
+        } else {
+            for (var hand : Hand.values()) {
+                if (!(player.getStackInHand(hand).getItem() instanceof LocalVoidItem)) continue;
+                return TeleportSources.LOCAL_VOID;
+            }
+        }
+        return null;
+    }
 }

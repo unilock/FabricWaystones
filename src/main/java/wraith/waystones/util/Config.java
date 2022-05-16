@@ -40,12 +40,12 @@ public final class Config {
         return configData.getCompound("worldgen").getBoolean("generate_in_villages");
     }
 
-    //public int getMinPerVillage() {
-    //    return configData.getCompound("worldgen").getInt("min_per_village");
-    //}
-    //public int getMaxPerVillage() {
-    //    return configData.getCompound("worldgen").getInt("max_per_village");
-    //}
+    public int getMinPerVillage() {
+        return configData.getCompound("worldgen").getInt("min_per_village");
+    }
+    public int getMaxPerVillage() {
+        return configData.getCompound("worldgen").getInt("max_per_village");
+    }
 
     public int getVillageStructureWeight() {
         return configData.getCompound("worldgen").getInt("village_waystone_weight");
@@ -82,7 +82,7 @@ public final class Config {
     }
 
     public boolean storeWaystoneNbt() {
-        return true;
+        return configData.getBoolean("store_waystone_data_on_sneak_break");
     }
 
     public String teleportType() {
@@ -139,6 +139,10 @@ public final class Config {
 
     public int getCooldownFromLocalVoid() {
         return configData.getCompound("teleportation_cooldown").getInt("cooldown_ticks_from_local_void");
+    }
+
+    public int getCooldownFromVoidTotem() {
+        return configData.getCompound("teleportation_cooldown").getInt("cooldown_ticks_from_void_totem");
     }
 
     public int getCooldownFromWaystone() {
@@ -249,9 +253,9 @@ public final class Config {
 
         NbtCompound worldgen = new NbtCompound();
         worldgen.putBoolean("generate_in_villages", true);
-        //worldgen.putInt("min_per_village", 1);
-        //worldgen.putInt("max_per_village", 1);
-        worldgen.putInt("village_waystone_weight", 5);
+        worldgen.putInt("min_per_village", 1);
+        worldgen.putInt("max_per_village", 1);
+        worldgen.putInt("village_waystone_weight", 2);
         defaultConfig.put("worldgen", worldgen);
 
         defaultConfig.putBoolean("consume_infinite_knowledge_scroll_on_use", false);
@@ -281,6 +285,7 @@ public final class Config {
         cooldown.putInt("cooldown_ticks_from_abyss_watcher", 0);
         cooldown.putInt("cooldown_ticks_from_pocket_wormhole", 0);
         cooldown.putInt("cooldown_ticks_from_local_void", 0);
+        cooldown.putInt("cooldown_ticks_from_void_totem", 0);
         cooldown.putInt("cooldown_ticks_from_waystone", 0);
         defaultConfig.put("teleportation_cooldown", cooldown);
 
@@ -295,8 +300,8 @@ public final class Config {
         JsonObject worldgenJson = new JsonObject();
         NbtCompound worldgenTag = getCompoundOrDefault(tag, "worldgen", defaults);
         worldgenJson.addProperty("generate_in_villages", getBooleanOrDefault(worldgenTag, "generate_in_villages", defaults));
-        //worldgenJson.addProperty("min_per_village", getIntOrDefault(worldgenTag, "min_per_village", defaults));
-        //worldgenJson.addProperty("max_per_village", getIntOrDefault(worldgenTag, "max_per_village", defaults));
+        worldgenJson.addProperty("min_per_village", getIntOrDefault(worldgenTag, "min_per_village", defaults));
+        worldgenJson.addProperty("max_per_village", getIntOrDefault(worldgenTag, "max_per_village", defaults));
         worldgenJson.addProperty("village_waystone_weight", getIntOrDefault(worldgenTag, "village_waystone_weight", defaults));
         json.add("worldgen", worldgenJson);
 
@@ -327,6 +332,7 @@ public final class Config {
         cooldownsJson.addProperty("cooldown_ticks_from_abyss_watcher", getIntOrDefault(cooldownsTag, "cooldown_ticks_from_abyss_watcher", defaults));
         cooldownsJson.addProperty("cooldown_ticks_from_pocket_wormhole", getIntOrDefault(cooldownsTag, "cooldown_ticks_from_pocket_wormhole", defaults));
         cooldownsJson.addProperty("cooldown_ticks_from_local_void", getIntOrDefault(cooldownsTag, "cooldown_ticks_from_local_void", defaults));
+        cooldownsJson.addProperty("cooldown_ticks_from_void_totem", getIntOrDefault(cooldownsTag, "cooldown_ticks_from_void_totem", defaults));
         cooldownsJson.addProperty("cooldown_ticks_from_waystone", getIntOrDefault(cooldownsTag, "cooldown_ticks_from_waystone", defaults));
         json.add("teleportation_cooldown", cooldownsJson);
 
@@ -345,8 +351,8 @@ public final class Config {
             var worldgenJson = json.get("worldgen").getAsJsonObject();
             var defaultWorldgen = new NbtCompound();
             worldgen.putBoolean("generate_in_villages", getBooleanOrDefault(worldgenJson, "generate_in_villages", defaultWorldgen));
-            //worldgen.putInt("min_per_village", getIntOrDefault(worldgenJson, "min_per_village", defaultWorldgen));
-            //worldgen.putInt("max_per_village", getIntOrDefault(worldgenJson, "max_per_village", defaultWorldgen));
+            worldgen.putInt("min_per_village", getIntOrDefault(worldgenJson, "min_per_village", defaultWorldgen));
+            worldgen.putInt("max_per_village", getIntOrDefault(worldgenJson, "max_per_village", defaultWorldgen));
             worldgen.putInt("village_waystone_weight", getIntOrDefault(worldgenJson, "village_waystone_weight", defaultWorldgen));
         } else {
             ++difference;
@@ -389,6 +395,7 @@ public final class Config {
             cooldowns.putInt("cooldown_ticks_from_abyss_watcher", getIntOrDefault(cooldownsJson, "cooldown_ticks_from_abyss_watcher", defaultCooldowns));
             cooldowns.putInt("cooldown_ticks_from_pocket_wormhole", getIntOrDefault(cooldownsJson, "cooldown_ticks_from_pocket_wormhole", defaultCooldowns));
             cooldowns.putInt("cooldown_ticks_from_local_void", getIntOrDefault(cooldownsJson, "cooldown_ticks_from_local_void", defaultCooldowns));
+            cooldowns.putInt("cooldown_ticks_from_void_totem", getIntOrDefault(cooldownsJson, "cooldown_ticks_from_void_totem", defaultCooldowns));
             cooldowns.putInt("cooldown_ticks_from_waystone", getIntOrDefault(cooldownsJson, "cooldown_ticks_from_waystone", defaultCooldowns));
         } else {
             ++difference;

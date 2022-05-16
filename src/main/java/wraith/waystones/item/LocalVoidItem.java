@@ -32,20 +32,25 @@ public class LocalVoidItem extends Item implements PolymerItem {
         super(settings);
     }
 
+    protected boolean canTeleport = true;
+    protected String translationName = "local_void";
+
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
         ItemStack stack = user.getStackInHand(hand);
         NbtCompound tag = stack.getNbt();
         if (tag == null || !tag.contains("waystone")) {
-            return TypedActionResult.fail(stack);
+            return canTeleport ? TypedActionResult.pass(stack) : TypedActionResult.fail(stack);
         }
         if (user.isSneaking()) {
             stack.removeSubNbt("waystone");
-        } else {
+        } else if (canTeleport) {
             String hash = tag.getString("waystone");
             if (Waystones.WAYSTONE_STORAGE != null) {
                 WaystoneBlockEntity waystone = Waystones.WAYSTONE_STORAGE.getWaystoneEntity(hash);
-                if (waystone != null && waystone.teleportPlayer(user, Config.getInstance().doLocalVoidsUseCost()) && !user.isCreative() && Config.getInstance().consumeLocalVoid()) {
+                if (waystone == null) {
+                    stack.removeSubNbt("waystone");
+                } else if (waystone.teleportPlayer(user, Config.getInstance().doLocalVoidsUseCost()) && !user.isCreative() && Config.getInstance().consumeLocalVoid()) {
                     stack.decrement(1);
                 }
             }
@@ -73,26 +78,30 @@ public class LocalVoidItem extends Item implements PolymerItem {
     public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context) {
         super.appendTooltip(stack, world, tooltip, context);
         String name = null;
-        NbtCompound tag = stack.getNbt();
-        boolean invalid = false;
-        if (tag == null || !tag.contains("waystone")) {
-            invalid = true;
-        } else {
-            name = Waystones.WAYSTONE_STORAGE.getName(tag.getString("waystone"));
-            if (name == null) {
-                invalid = true;
-            }
-        }
-        if (invalid) {
-            tooltip.add(new TranslatableText("waystones.local_void.empty_tooltip"));
+
+        var hash = getBoundWaystone(stack);
+        if (hash != null) name = Waystones.WAYSTONE_STORAGE.getName(hash);
+        if (name == null) {
+            tooltip.add(new TranslatableText("waystones." + translationName + ".empty_tooltip"));
             return;
         }
         tooltip.add(new TranslatableText(
-                "waystones.local_void.tooltip",
+                "waystones." + translationName + ".tooltip",
                 new LiteralText(name).styled(style ->
-                        style.withColor(TextColor.parse(new TranslatableText("waystones.local_void.tooltip.arg_color").getString()))
+                        style.withColor(TextColor.parse(new TranslatableText("waystones." + translationName + ".tooltip.arg_color").getString()))
                 )
         ));
+    }
+
+    public static String getBoundWaystone(ItemStack stack) {
+        if (!(stack.getItem() instanceof LocalVoidItem)) {
+            return null;
+        }
+        NbtCompound tag = stack.getNbt();
+        if (tag == null || !tag.contains("waystone")) {
+            return null;
+        }
+        return tag.getString("waystone");
     }
 
 
