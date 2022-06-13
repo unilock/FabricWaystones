@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "id": "waystones",
+  "id": "fwaystones",
   "version": "${version}",
-  "name": "Waystones (Polymer Port)",
+  "name": "Fabric Waystones (Polymer Port)",
   "description": "A better way of transport!",
   "authors": [
     "LordDeatHunter"
@@ -16,21 +16,21 @@
     "issues": "https://github.com/PolymerPorts/FabricWaystones/issues"
   },
   "license": "MIT License",
-  "icon": "assets/waystones/WaystoneIcon.png",
+  "icon": "assets/fwaystones/fabric_waystones_icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
-      "wraith.waystones.Waystones"
+      "wraith.fwaystones.FabricWaystones"
     ]
   },
   "mixins": [
-    "waystones.mixins.json"
+    "fwaystones.mixins.json"
   ],
-  "accessWidener": "waystones.accesswidener",
+  "accessWidener": "fwaystones.accesswidener",
   "depends": {
     "fabricloader": ">=0.13.3",
     "fabric": "*",
-    "minecraft": "1.18.2",
+    "minecraft": "~1.19",
     "java": ">=17"
   }
 }
