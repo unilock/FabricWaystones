@@ -11,15 +11,14 @@ import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
-import wraith.fwaystones.access.PlayerAccess;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlockEntity;
 import wraith.fwaystones.item.AbyssWatcherItem;
-import wraith.fwaystones.util.Config;
 import wraith.fwaystones.util.TeleportSources;
 import wraith.fwaystones.util.Utils;
 
@@ -49,7 +48,8 @@ public class UniversalWaystoneGui extends PagedGui {
                 }
             }
             return false;
-        } : t -> true, (gui) -> {});
+        } : t -> true, (gui) -> {
+        });
 
         ui.updateDisplay();
         ui.open();
@@ -61,7 +61,8 @@ public class UniversalWaystoneGui extends PagedGui {
         if (user.getUuid().equals(waystone.getOwner()) || user.hasPermissionLevel(2)) {
             ui = new UniversalWaystoneGui(user, Text.literal(waystone.getWaystoneName()), TeleportSources.WAYSTONE,
                     t -> !waystone.isRemoved() && ((PlayerEntityMixinAccess) user).hasDiscoveredWaystone(waystone),
-                    (gui) -> {}
+                    (gui) -> {
+                    }
             ) {
                 @Override
                 protected boolean isSelf(String hash) {
@@ -74,14 +75,15 @@ public class UniversalWaystoneGui extends PagedGui {
                         case 1 -> DisplayElement.previousPage(this);
                         case 3 -> DisplayElement.nextPage(this);
                         case 5 -> getCost();
-                        case 7 -> Permissions.check(this.player, "waystones.can_edit_any", 3) || this.player.getUuid().equals(waystone.getOwner()) ? DisplayElement.of(
-                                new GuiElementBuilder(Items.REDSTONE)
-                                        .setName(Text.translatable("fwaystones.config.tooltip.config"))
-                                        .setCallback((x, y, z) -> {
-                                            playClickSound(this.player);
-                                            WaystoneSettingsGui.open(user, waystone);
-                                        })
-                        ) : DisplayElement.filler();
+                        case 7 ->
+                                Permissions.check(this.player, "waystones.can_edit_any", 3) || this.player.getUuid().equals(waystone.getOwner()) ? DisplayElement.of(
+                                        new GuiElementBuilder(Items.REDSTONE)
+                                                .setName(Text.translatable("fwaystones.config.tooltip.config"))
+                                                .setCallback((x, y, z) -> {
+                                                    playClickSound(this.player);
+                                                    WaystoneSettingsGui.open(user, waystone);
+                                                })
+                                ) : DisplayElement.filler();
                         default -> DisplayElement.filler();
                     };
                 }
@@ -89,7 +91,8 @@ public class UniversalWaystoneGui extends PagedGui {
         } else {
             ui = new UniversalWaystoneGui(user, Text.literal(waystone.getWaystoneName()), TeleportSources.WAYSTONE,
                     t -> !waystone.isRemoved() && ((PlayerEntityMixinAccess) user).hasDiscoveredWaystone(waystone),
-                    (gui) -> {}
+                    (gui) -> {
+                    }
             ) {
                 @Override
                 protected boolean isSelf(String hash) {
@@ -153,7 +156,7 @@ public class UniversalWaystoneGui extends PagedGui {
             var hash = this.sortedWaystones.get(id);
             var tmpWaystone = FabricWaystones.WAYSTONE_STORAGE.getWaystoneData(hash);
 
-            var builder =  new GuiElementBuilder(tmpWaystone.isGlobal() ? Items.ENDER_EYE : Items.ENDER_PEARL)
+            var builder = new GuiElementBuilder(tmpWaystone.isGlobal() ? Items.ENDER_EYE : Items.ENDER_PEARL)
                     .setName(Text.literal(tmpWaystone.getWaystoneName()))
                     .hideFlags()
                     .setCallback((x, y, z) -> this.handleSelection(x, y, z, hash));
@@ -188,7 +191,7 @@ public class UniversalWaystoneGui extends PagedGui {
                 FabricWaystones.WAYSTONE_STORAGE.removeWaystone(hash);
                 waystone.getWorld().removeBlockEntity(waystone.getPos());
             } else {
-                if (Utils.canTeleport(player,  hash, false) && !this.isSelf(hash)) {
+                if (Utils.canTeleport(player, hash, false) && !this.isSelf(hash)) {
                     playClickSound(this.player);
                     this.teleported = waystone.teleportPlayer(player, true);
                     this.close();
@@ -209,42 +212,39 @@ public class UniversalWaystoneGui extends PagedGui {
     }
 
     protected DisplayElement getCost() {
-            String cost = Config.getInstance().teleportType();
-            int amount = Config.getInstance().baseTeleportCost();
+        var cost = FabricWaystones.CONFIG.teleportation_cost.cost_type();
+        int amount = FabricWaystones.CONFIG.teleportation_cost.base_cost();
 
-            Item item;
-            String type;
+        Item item;
+        String type;
 
-            switch (cost) {
-                case "hp":
-                case "health":
-                    item = Items.RED_DYE;
-                    type = "health";
-                    break;
-                case "hunger":
-                case "saturation":
-                    item = Items.PORKCHOP;
-                    type = "hunger";
-                    break;
-                case "xp":
-                case "experience":
-                    item = Items.EXPERIENCE_BOTTLE;
-                    type = "xp";
-                    break;
-                case "level":
-                    item = Items.EXPERIENCE_BOTTLE;
-                    type = "level";
-                    break;
-                case "item":
-                    item = Registries.ITEM.get(Config.getInstance().teleportCostItem());
-                    type = "item";
-                    break;
-                default:
-                    return DisplayElement.filler();
-            }
+        switch (cost) {
+            case HEALTH:
+                item = Items.RED_DYE;
+                type = "health";
+                break;
+            case HUNGER:
+                item = Items.PORKCHOP;
+                type = "hunger";
+                break;
+            case EXPERIENCE:
+                item = Items.EXPERIENCE_BOTTLE;
+                type = "xp";
+                break;
+            case LEVEL:
+                item = Items.EXPERIENCE_BOTTLE;
+                type = "level";
+                break;
+            case ITEM:
+                item = Registries.ITEM.get(new Identifier(FabricWaystones.CONFIG.teleportation_cost.cost_item()));
+                type = "item";
+                break;
+            default:
+                return DisplayElement.filler();
+        }
 
-            return DisplayElement.of(new GuiElementBuilder(item)
-                    .setName(Text.translatable("polyport.waystones.cost", amount, type.equals("item") ? item.getName() : Text.translatable("fwaystones.cost." + type)) )
-                    .setCount(amount));
+        return DisplayElement.of(new GuiElementBuilder(item)
+                .setName(Text.translatable("polyport.waystones.cost", amount, type.equals("item") ? item.getName() : Text.translatable("fwaystones.cost." + type)))
+                .setCount(amount));
     }
 }

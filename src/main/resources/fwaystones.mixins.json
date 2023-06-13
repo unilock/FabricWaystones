@@ -14,8 +14,7 @@
     "StructurePoolAccessor",
     "StructurePoolBasedGenerator_StructurePoolGeneratorMixin",
     "StructurePoolBasedGeneratorMixin",
-    "StructureStartAccessor",
-    "TagGroupLoaderMixin"
+    "StructureStartAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -16,10 +16,12 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.structure.pool.StructurePool;
 import net.minecraft.structure.pool.StructurePoolElement;
 import net.minecraft.structure.processor.StructureProcessorList;
+import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.gui.UniversalWaystoneGui;
 import wraith.fwaystones.item.LocalVoidItem;
@@ -68,8 +70,8 @@ public final class Utils {
             return "DeatHunter was here";
         }
         var sb = new StringBuilder();
-        char[] vowels = {'a', 'e', 'i', 'o', 'u'};
-        char[] consonants = {'b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'w', 'x', 'y', 'z'};
+        char[] vowels = { 'a', 'e', 'i', 'o', 'u' };
+        char[] consonants = { 'b', 'c', 'd', 'f', 'g', 'h', 'j', 'k', 'l', 'm', 'n', 'p', 'q', 'r', 's', 't', 'v', 'w', 'x', 'y', 'z' };
         for (int i = 0; i < 4; ++i) {
             var consonant = consonants[Utils.random.nextInt(consonants.length)];
             if (i == 0) {
@@ -124,76 +126,94 @@ public final class Utils {
     }
 
     public static int getCost(Vec3d startPos, Vec3d endPos, String startDim, String endDim) {
-        var config = Config.getInstance();
-        float cost = config.baseTeleportCost();
+        var config = FabricWaystones.CONFIG.teleportation_cost;
+        float cost = config.base_cost();
         if (startDim.equals(endDim)) {
-            cost += Math.max(0, startPos.add(0, 0.5, 0).distanceTo(endPos) - 1.4142) * config.extraCostPerBlock();
+            cost += Math.max(0, startPos.add(0, 0.5, 0).distanceTo(endPos) - 1.4142) * config.cost_per_block_distance();
         } else {
-            cost *= config.perDimensionMultiplier();
+            cost *= config.cost_multiplier_between_dimensions();
         }
         return Math.round(cost);
     }
 
     public static boolean canTeleport(PlayerEntity player, String hash, boolean takeCost) {
-        var config = Config.getInstance();
-        String cost = config.teleportType();
+        FWConfigModel.CostType cost = FabricWaystones.CONFIG.teleportation_cost.cost_type();
         var waystone = FabricWaystones.WAYSTONE_STORAGE.getWaystoneData(hash);
         if (waystone == null) {
+            player.sendMessage(Text.translatable("fwaystones.no_teleport.invalid_waystone"), true);
             return false;
         }
-        int amount = getCost(player.getPos(), Vec3d.ofCenter(waystone.way_getPos()), Utils.getDimensionName(player.world), waystone.getWorldName());
+        var sourceDim = getDimensionName(player.getWorld());
+        var destDim = waystone.getWorldName();
+        if (!FabricWaystones.CONFIG.ignore_dimension_blacklists_if_same_dimension() || !sourceDim.equals(destDim)) {
+            if (FabricWaystones.CONFIG.disable_teleportation_from_dimensions().contains(sourceDim)) {
+                player.sendMessage(Text.translatable("fwaystones.no_teleport.blacklisted_dimension_source"), true);
+                return false;
+            }
+            if (FabricWaystones.CONFIG.disable_teleportation_to_dimensions().contains(destDim)) {
+                player.sendMessage(Text.translatable("fwaystones.no_teleport.blacklisted_dimension_destination"), true);
+                return false;
+            }
+        }
+        int amount = getCost(player.getPos(), Vec3d.ofCenter(waystone.way_getPos()), sourceDim, destDim);
         if (player.isCreative()) {
             return true;
         }
         switch (cost) {
-            case "hp":
-            case "health":
+            case HEALTH -> {
                 if (player.getHealth() + player.getAbsorptionAmount() <= amount) {
+                    player.sendMessage(Text.translatable("fwaystones.no_teleport.health"), true);
                     return false;
                 }
                 if (takeCost) {
                     player.damage(player.getWorld().getDamageSources().magic(), amount);
                 }
                 return true;
-            case "hunger":
-            case "saturation":
+            }
+            case HUNGER -> {
                 var hungerManager = player.getHungerManager();
                 var hungerAndExhaustion = hungerManager.getFoodLevel() + hungerManager.getSaturationLevel();
                 if (hungerAndExhaustion <= 10 || hungerAndExhaustion + hungerManager.getExhaustion() / 4F <= amount) {
+                    player.sendMessage(Text.translatable("fwaystones.no_teleport.hunger"), true);
                     return false;
                 }
                 if (takeCost) {
                     hungerManager.addExhaustion(4 * amount);
                 }
                 return true;
-            case "xp":
-            case "experience":
+            }
+            case EXPERIENCE -> {
                 long total = determineLevelXP(player);
                 if (total < amount) {
+                    player.sendMessage(Text.translatable("fwaystones.no_teleport.xp"), true);
                     return false;
                 }
                 if (takeCost) {
                     player.addExperience(-amount);
                 }
                 return true;
-            case "level":
+            }
+            case LEVEL -> {
                 if (player.experienceLevel < amount) {
+                    player.sendMessage(Text.translatable("fwaystones.no_teleport.level"), true);
                     return false;
                 }
                 if (takeCost) {
                     player.addExperienceLevels(-amount);
                 }
                 return true;
-            case "item":
-                Identifier itemId = Config.getInstance().teleportCostItem();
+            }
+            case ITEM -> {
+                Identifier itemId = getTeleportCostItem();
                 Item item = Registries.ITEM.get(itemId);
                 if (!containsItem(player.getInventory(), item, amount)) {
+                    player.sendMessage(Text.translatable("fwaystones.no_teleport.item"), true);
                     return false;
                 }
                 if (takeCost) {
-                    removeItem(player.getInventory(), Registries.ITEM.get(itemId), amount);
+                    removeItem(player.getInventory(), item, amount);
 
-                    if (player.world.isClient || FabricWaystones.WAYSTONE_STORAGE == null) {
+                    if (player.getWorld().isClient || FabricWaystones.WAYSTONE_STORAGE == null) {
                         return true;
                     }
                     var waystoneBE = waystone.getEntity();
@@ -210,13 +230,15 @@ public final class Utils {
                         }
                     }
                     if (!found) {
-                        oldInventory.add(new ItemStack(Registries.ITEM.get(itemId), amount));
+                        oldInventory.add(new ItemStack(item, amount));
                     }
                     waystoneBE.setInventory(oldInventory);
                 }
                 return true;
-            default:
+            }
+            default -> {
                 return true;
+            }
         }
 
     }
@@ -300,8 +322,36 @@ public final class Utils {
     }
 
     public static int getRandomColor() {
-        Random rand = new Random();
-        return rand.nextInt(256) << 16 + rand.nextInt(256) << 8 + rand.nextInt(256);
+        return random.nextInt(0xFFFFFF);
+    }
+
+    @Nullable
+    public static Identifier getTeleportCostItem() {
+        if (FabricWaystones.CONFIG.teleportation_cost.cost_type() == FWConfigModel.CostType.ITEM) {
+            String[] item = FabricWaystones.CONFIG.teleportation_cost.cost_item().split(":");
+            return (item.length == 2) ? new Identifier(item[0], item[1]) : new Identifier(item[0]);
+        }
+        return null;
+    }
+
+    @Nullable
+    public static Identifier getDiscoverItem() {
+        var discoverStr = FabricWaystones.CONFIG.discover_with_item();
+        if (discoverStr.equals("none")) {
+            return null;
+        }
+        String[] item = discoverStr.split(":");
+        return (item.length == 2) ? new Identifier(item[0], item[1]) : new Identifier(item[0]);
+    }
+
+    public static boolean isSubSequence(String mainString, String searchString) {
+        int j = 0;
+        for (int i = 0; i < mainString.length() && j < searchString.length(); ++i) {
+            if (mainString.charAt(i) == searchString.charAt(j))
+                ++j;
+            if (j == searchString.length()) return true;
+        }
+        return false;
     }
 
 }

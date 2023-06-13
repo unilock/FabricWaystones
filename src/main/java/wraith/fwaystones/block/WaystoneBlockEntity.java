@@ -17,6 +17,7 @@ import net.minecraft.particle.ParticleEffect;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ChunkTicketType;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
@@ -24,10 +25,7 @@ import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
 import net.minecraft.util.Hand;
 import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
+import net.minecraft.util.math.*;
 import net.minecraft.world.TeleportTarget;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
@@ -37,7 +35,6 @@ import wraith.fwaystones.access.WaystoneValue;
 import wraith.fwaystones.item.AbyssWatcherItem;
 import wraith.fwaystones.registry.BlockEntityRegistry;
 import wraith.fwaystones.registry.ItemRegistry;
-import wraith.fwaystones.util.Config;
 import wraith.fwaystones.util.TeleportSources;
 import wraith.fwaystones.util.Utils;
 
@@ -210,7 +207,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         float Rot = Math.round(rot);
         float Rot2 = rotClamp(360, Rot + 180);
         return ((Rot - amount <= lookingRotR && lookingRotR <= Rot + amount) || (
-            Rot2 - amount <= lookingRotR && lookingRotR <= Rot2 + amount));
+                Rot2 - amount <= lookingRotR && lookingRotR <= Rot2 + amount));
     }
 
     private void moveOnTickR(float rot) {
@@ -235,7 +232,6 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         if (world == null) {
             return;
         }
-
         var r = world.getRandom();
         Vec3d playerPos = player.getPos();
         ParticleEffect p = (r.nextInt(10) > 7) ? ParticleTypes.ENCHANT : ParticleTypes.PORTAL;
@@ -248,19 +244,21 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         int rd = r.nextInt(10);
         if (rd > 5) {
             if (p == ParticleTypes.ENCHANT) {
-                ((ServerWorld) this.world).spawnParticles(p, playerPos.x, playerPos.y + 1.5D, playerPos.z, 0,
+                this.world.addParticle(p, playerPos.x, playerPos.y + 1.5D, playerPos.z,
                         (getPos().getX() + 0.5D - playerPos.x), (y - 1.25D - playerPos.y),
-                        (getPos().getZ() + 0.5D - playerPos.z), 1);
+                        (getPos().getZ() + 0.5D - playerPos.z));
             } else {
-                ((ServerWorld) this.world).spawnParticles(p, this.getPos().getX() + 0.5D, y + 0.6D, this.getPos().getZ() + 0.5D, 0,
+                this.world.addParticle(p, this.getPos().getX() + 0.5D, y + 0.8D,
+                        this.getPos().getZ() + 0.5D,
                         (playerPos.x - getPos().getX()) - r.nextDouble(),
                         (playerPos.y - getPos().getY() - 0.5D) - r.nextDouble() * 0.5D,
-                        (playerPos.z - getPos().getZ()) - r.nextDouble(), 1);
+                        (playerPos.z - getPos().getZ()) - r.nextDouble());
             }
         }
         if (rd > 8) {
-            ((ServerWorld) this.world).spawnParticles(p, y + 0.5D, this.getPos().getY() + 0.8D, this.getPos().getZ() + 0.5D, 0,
-                    r.nextDouble() * j, (r.nextDouble() - 0.25D) * 0.125D, r.nextDouble() * k, 1);
+            this.world.addParticle(p, y + 0.5D, this.getPos().getY() + 0.8D,
+                    this.getPos().getZ() + 0.5D,
+                    r.nextDouble() * j, (r.nextDouble() - 0.25D) * 0.125D, r.nextDouble() * k);
         }
     }
 
@@ -272,7 +270,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         ++tickDelta;
         if (getCachedState().get(WaystoneBlock.ACTIVE)) {
             var closestPlayer = this.world.getClosestPlayer(this.getPos().getX() + 0.5D,
-                this.getPos().getY() + 0.5D, this.getPos().getZ() + 0.5D, 4.5, false);
+                    this.getPos().getY() + 0.5D, this.getPos().getZ() + 0.5D, 4.5, false);
             if (closestPlayer != null) {
                 addParticle(closestPlayer);
                 double x = closestPlayer.getX() - this.getPos().getX() - 0.5D;
@@ -320,7 +318,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
     public boolean canAccess(PlayerEntity player) {
         return player.squaredDistanceTo((double) this.pos.getX() + 0.5D,
-            (double) this.pos.getY() + 0.5D, (double) this.pos.getZ() + 0.5D) <= 64.0D;
+                (double) this.pos.getY() + 0.5D, (double) this.pos.getZ() + 0.5D) <= 64.0D;
     }
 
     public boolean teleportPlayer(PlayerEntity player, boolean takeCost) {
@@ -364,12 +362,11 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             return false;
         }
         TeleportTarget target = new TeleportTarget(
-            new Vec3d(pos.getX() + fX, pos.getY(), pos.getZ() + fZ),
-            new Vec3d(0, 0, 0),
-            fYaw,
-            0
+                new Vec3d(pos.getX() + fX, pos.getY(), pos.getZ() + fZ),
+                new Vec3d(0, 0, 0),
+                fYaw,
+                0
         );
-
         if (source == null) {
             source = Utils.getTeleportSource(playerEntity);
         }
@@ -385,7 +382,7 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
                 if (playerEntity.getStackInHand(hand).getItem() instanceof AbyssWatcherItem) {
                     player.sendToolBreakStatus(hand);
                     playerEntity.getStackInHand(hand).decrement(1);
-                    player.world.playSound(null, pos, SoundEvents.BLOCK_GLASS_BREAK, SoundCategory.PLAYERS, 1F, 1F);
+                    player.getWorld().playSound(null, pos, SoundEvents.BLOCK_GLASS_BREAK, SoundCategory.PLAYERS, 1F, 1F);
                     break;
                 }
             }
@@ -399,33 +396,36 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         if (source != TeleportSources.VOID_TOTEM && cooldown > 0) {
             var cooldownSeconds = Utils.df.format(cooldown / 20F);
             player.sendMessage(Text.translatable(
-                "fwaystones.no_teleport_message.cooldown",
-                Text.literal(cooldownSeconds).styled(style ->
-                    style.withColor(TextColor.parse(Text.translatable(
-                        "fwaystones.no_teleport_message.cooldown.arg_color").getString()))
-                )
+                    "fwaystones.no_teleport_message.cooldown",
+                    Text.literal(cooldownSeconds).styled(style ->
+                            style.withColor(TextColor.parse(Text.translatable(
+                                    "fwaystones.no_teleport_message.cooldown.arg_color").getString()))
+                    )
             ), false);
             return false;
         }
-        if ((source != TeleportSources.LOCAL_VOID || Config.getInstance().doLocalVoidsUseCost())
-            && !Utils.canTeleport(player, hash, takeCost)) {
+        if (source == TeleportSources.LOCAL_VOID && !FabricWaystones.CONFIG.free_local_void_teleport()) {
             return false;
         }
+        if (source != TeleportSources.VOID_TOTEM && !Utils.canTeleport(player, hash, takeCost)) {
+            return false;
+        }
+        var cooldowns = FabricWaystones.CONFIG.teleportation_cooldown;
         playerAccess.setTeleportCooldown(switch (source) {
-            case WAYSTONE -> Config.getInstance().getCooldownFromWaystone();
-            case ABYSS_WATCHER -> Config.getInstance().getCooldownFromAbyssWatcher();
-            case LOCAL_VOID -> Config.getInstance().getCooldownFromLocalVoid();
-            case VOID_TOTEM -> Config.getInstance().getCooldownFromVoidTotem();
-            case POCKET_WORMHOLE -> Config.getInstance().getCooldownFromPocketWormhole();
+            case WAYSTONE -> cooldowns.cooldown_ticks_from_waystone();
+            case ABYSS_WATCHER -> cooldowns.cooldown_ticks_from_abyss_watcher();
+            case LOCAL_VOID -> cooldowns.cooldown_ticks_from_local_void();
+            case VOID_TOTEM -> cooldowns.cooldown_ticks_from_void_totem();
+            case POCKET_WORMHOLE -> cooldowns.cooldown_ticks_from_pocket_wormhole();
         });
         var oldPos = player.getBlockPos();
-        player.world.playSound(null, oldPos, SoundEvents.ENTITY_ENDERMAN_TELEPORT,
-            SoundCategory.BLOCKS, 1F, 1F);
-        //FabricWaystones.LOGGER.info("Teleporting...");
+        world.getChunkManager().addTicket(ChunkTicketType.POST_TELEPORT, new ChunkPos(BlockPos.ofFloored(target.position)), 1, player.getId());
+        player.getWorld().playSound(null, oldPos, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
+        player.detach();
         FabricDimensions.teleport(player, world, target);
         BlockPos playerPos = player.getBlockPos();
 
-        if (!oldPos.isWithinDistance(playerPos, 6) || !player.world.getRegistryKey().equals(world.getRegistryKey())) {
+        if (!oldPos.isWithinDistance(playerPos, 6) || !player.getWorld().getRegistryKey().equals(world.getRegistryKey())) {
             world.playSound(null, playerPos, SoundEvents.ENTITY_ENDERMAN_TELEPORT, SoundCategory.BLOCKS, 1F, 1F);
         }
         return true;
@@ -484,18 +484,18 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
         if (player == null) {
             if (this.owner != null && this.world != null) {
                 world.playSound(null, pos.getX(), pos.getY(), pos.getZ(),
-                    SoundEvents.BLOCK_AMETHYST_CLUSTER_BREAK, SoundCategory.BLOCKS, 1F, 1F);
+                        SoundEvents.BLOCK_AMETHYST_CLUSTER_BREAK, SoundCategory.BLOCKS, 1F, 1F);
                 world.playSound(null, pos.getX(), pos.getY(), pos.getZ(),
-                    SoundEvents.ENTITY_ENDER_EYE_DEATH, SoundCategory.BLOCKS, 1F, 1F);
+                        SoundEvents.ENTITY_ENDER_EYE_DEATH, SoundCategory.BLOCKS, 1F, 1F);
             }
             this.owner = null;
             this.ownerName = null;
         } else {
             if (this.owner == null && world != null) {
                 world.playSound(null, pos.getX(), pos.getY(), pos.getZ(),
-                    SoundEvents.BLOCK_BEACON_POWER_SELECT, SoundCategory.BLOCKS, 1F, 1F);
+                        SoundEvents.BLOCK_BEACON_POWER_SELECT, SoundCategory.BLOCKS, 1F, 1F);
                 world.playSound(null, pos.getX(), pos.getY(), pos.getZ(),
-                    SoundEvents.BLOCK_AMETHYST_CLUSTER_HIT, SoundCategory.BLOCKS, 1F, 1F);
+                        SoundEvents.BLOCK_AMETHYST_CLUSTER_HIT, SoundCategory.BLOCKS, 1F, 1F);
             }
             this.owner = player.getUuid();
             this.ownerName = player.getName().getString();

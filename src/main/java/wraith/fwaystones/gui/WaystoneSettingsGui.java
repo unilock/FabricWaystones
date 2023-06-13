@@ -4,6 +4,7 @@ import eu.pb4.sgui.api.elements.GuiElementBuilder;
 import eu.pb4.sgui.api.gui.AnvilInputGui;
 import eu.pb4.sgui.api.gui.SimpleGui;
 import me.lucko.fabric.api.permissions.v0.Permissions;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Items;
 import net.minecraft.screen.ScreenHandlerType;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -11,7 +12,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.block.WaystoneBlockEntity;
-import wraith.fwaystones.util.Config;
+import wraith.fwaystones.util.FWConfigModel;
 
 public class WaystoneSettingsGui extends SimpleGui {
     private final WaystoneBlockEntity waystone;
@@ -24,15 +25,15 @@ public class WaystoneSettingsGui extends SimpleGui {
 
     @Override
     public void onTick() {
-         if (waystone.isRemoved()) {
-             this.close();
-         }
+        if (waystone.isRemoved()) {
+            this.close();
+        }
     }
 
     protected void updateDisplay() {
         int i = 0;
 
-        if (Config.getInstance().canPlayersToggleGlobal() || Permissions.check(this.player, "waystones.set_global", 3)) {
+        if (canToggleGlobal(this.player, FabricWaystones.CONFIG.global_mode_toggle_permission_levels()) || Permissions.check(this.player, "waystones.set_global", 3)) {
             this.setSlot(i++, new GuiElementBuilder(waystone.isGlobal() ? Items.ENDER_EYE : Items.ENDER_PEARL)
                     .setName(Text.translatable("fwaystones.config.global"))
                     .setCallback((x, y, z) -> {
@@ -67,6 +68,25 @@ public class WaystoneSettingsGui extends SimpleGui {
                     UniversalWaystoneGui.open(this.player, this.waystone);
                 })
         );
+    }
+
+    public boolean canToggleGlobal(PlayerEntity player, FWConfigModel.PermissionLevel level) {
+        switch (level) {
+            case NONE -> {
+                return false;
+            }
+            case OP -> {
+                if (!player.hasPermissionLevel(2)) {
+                    return false;
+                }
+                return true;
+            }
+            case OWNER -> {
+                return player.getUuid().equals(this.waystone.getOwner()) && this.waystone.getOwner().equals(FabricWaystones.WAYSTONE_STORAGE.getWaystoneEntity(this.waystone.getHash()).getOwner());
+            }
+        }
+
+        return true;
     }
 
     private static void openRenaming(ServerPlayerEntity player, WaystoneBlockEntity waystone) {

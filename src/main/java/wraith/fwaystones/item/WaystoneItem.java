@@ -33,13 +33,13 @@ public class WaystoneItem extends BlockItem implements PolymerItem {
         String name = tag.getString("waystone_name");
         boolean global = tag.getBoolean("waystone_is_global");
         tooltip.add(Text.translatable(
-            "fwaystones.waystone_tooltip.name",
-            Text.literal(name).styled(style ->
-                style.withColor(TextColor.parse(Text.translatable("fwaystones.waystone_tooltip.name.arg_color").getString()))
-            )
+                "fwaystones.waystone_tooltip.name",
+                Text.literal(name).styled(style ->
+                        style.withColor(TextColor.parse(Text.translatable("fwaystones.waystone_tooltip.name.arg_color").getString()))
+                )
         ));
         tooltip.add(Text.translatable("fwaystones.waystone_tooltip.global").append(" ")
-            .append(Text.translatable("fwaystones.waystone_tooltip.global_" + (global ? "on" : "off"))));
+                .append(Text.translatable("fwaystones.waystone_tooltip.global_" + (global ? "on" : "off"))));
     }
 
     @Override

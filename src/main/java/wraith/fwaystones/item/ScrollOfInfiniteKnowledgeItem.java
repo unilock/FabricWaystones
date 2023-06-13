@@ -16,7 +16,6 @@ import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
-import wraith.fwaystones.util.Config;
 
 import java.util.HashSet;
 import java.util.List;
@@ -30,6 +29,9 @@ public class ScrollOfInfiniteKnowledgeItem extends Item implements PolymerItem {
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
         ItemStack stack = user.getStackInHand(hand);
+        if (world.isClient) {
+            return TypedActionResult.success(stack);
+        }
         if (FabricWaystones.WAYSTONE_STORAGE == null) {
             return TypedActionResult.fail(stack);
         }
@@ -49,24 +51,22 @@ public class ScrollOfInfiniteKnowledgeItem extends Item implements PolymerItem {
         if (learned > 0) {
             if (learned > 1) {
                 text = Text.translatable(
-                    "fwaystones.learned.infinite.multiple",
-                    Text.literal(String.valueOf(learned)).styled(style ->
-                        style.withColor(TextColor.parse(Text.translatable("fwaystones.learned.infinite.multiple.arg_color").getString()))
-                    )
+                        "fwaystones.learned.infinite.multiple",
+                        Text.literal(String.valueOf(learned)).styled(style ->
+                                style.withColor(TextColor.parse(Text.translatable("fwaystones.learned.infinite.multiple.arg_color").getString()))
+                        )
                 );
             } else {
                 text = Text.translatable("fwaystones.learned.infinite.single");
             }
             ((PlayerEntityMixinAccess) user).discoverWaystones(toLearn);
-            if (!user.isCreative() && Config.getInstance().consumeInfiniteScroll()) {
+            if (!user.isCreative() && FabricWaystones.CONFIG.consume_infinite_knowledge_scroll_on_use()) {
                 stack.decrement(1);
             }
         } else {
             text = Text.translatable("fwaystones.learned.infinite.none");
         }
-        if (!world.isClient) {
-            user.sendMessage(text, false);
-        }
+        user.sendMessage(text, false);
 
         if (stack.isEmpty()) {
             user.setStackInHand(hand, ItemStack.EMPTY);
@@ -85,10 +85,10 @@ public class ScrollOfInfiniteKnowledgeItem extends Item implements PolymerItem {
         }
         if (count != -1) {
             tooltip.add(Text.translatable(
-                "fwaystones.scroll.infinite_tooltip",
-                Text.literal(String.valueOf(count)).styled(style ->
-                    style.withColor(TextColor.parse(Text.translatable("fwaystones.scroll.infinite_tooltip.arg_color").getString()))
-                )
+                    "fwaystones.scroll.infinite_tooltip",
+                    Text.literal(String.valueOf(count)).styled(style ->
+                            style.withColor(TextColor.parse(Text.translatable("fwaystones.scroll.infinite_tooltip.arg_color").getString()))
+                    )
             ));
         }
     }

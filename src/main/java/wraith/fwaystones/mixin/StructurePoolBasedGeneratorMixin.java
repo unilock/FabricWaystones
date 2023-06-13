@@ -16,8 +16,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
+import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.StructurePoolBasedGenerator_StructurePoolGeneratorAccess;
-import wraith.fwaystones.util.Config;
 import wraith.fwaystones.util.Utils;
 
 import java.util.List;
@@ -34,9 +34,10 @@ public class StructurePoolBasedGeneratorMixin {
 
     @Unique
     private static void onInit(StructurePoolBasedGenerator.StructurePoolGenerator structurePoolGenerator) {
-        var config = Config.getInstance();
-        int maxWaystoneCount = Utils.getRandomIntInRange(config.getMinPerVillage(), config.getMaxPerVillage());
+        var config = FabricWaystones.CONFIG.worldgen;
+        int maxWaystoneCount = Utils.getRandomIntInRange(config.min_per_village(), config.max_per_village());
         ((StructurePoolBasedGenerator_StructurePoolGeneratorAccess) (Object) structurePoolGenerator).setMaxWaystoneCount(maxWaystoneCount);
     }
+
 
 }

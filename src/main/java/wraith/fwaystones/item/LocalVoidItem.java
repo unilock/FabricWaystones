@@ -20,7 +20,6 @@ import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.block.WaystoneBlock;
 import wraith.fwaystones.block.WaystoneBlockEntity;
-import wraith.fwaystones.util.Config;
 
 import java.util.List;
 
@@ -46,20 +45,23 @@ public class LocalVoidItem extends Item implements PolymerItem {
 
     @Override
     public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
+        if (world.isClient()) {
+            return TypedActionResult.pass(user.getStackInHand(hand));
+        }
         ItemStack stack = user.getStackInHand(hand);
         NbtCompound tag = stack.getNbt();
-        if (tag == null || !tag.contains("waystone")) {
+        if (tag == null || !tag.contains(FabricWaystones.MOD_ID)) {
             return canTeleport ? TypedActionResult.pass(stack) : TypedActionResult.fail(stack);
         }
         if (user.isSneaking()) {
-            stack.removeSubNbt("waystone");
+            stack.removeSubNbt(FabricWaystones.MOD_ID);
         } else if (canTeleport) {
-            String hash = tag.getString("waystone");
+            String hash = tag.getString(FabricWaystones.MOD_ID);
             if (FabricWaystones.WAYSTONE_STORAGE != null) {
                 WaystoneBlockEntity waystone = FabricWaystones.WAYSTONE_STORAGE.getWaystoneEntity(hash);
                 if (waystone == null) {
-                    stack.removeSubNbt("waystone");
-                } else if (waystone.teleportPlayer(user, Config.getInstance().doLocalVoidsUseCost()) && !user.isCreative() && Config.getInstance().consumeLocalVoid()) {
+                    stack.removeSubNbt(FabricWaystones.MOD_ID);
+                } else if (waystone.teleportPlayer(user, !FabricWaystones.CONFIG.free_local_void_teleport()) && !user.isCreative() && FabricWaystones.CONFIG.consume_local_void_on_use()) {
                     stack.decrement(1);
                 }
             }
@@ -77,7 +79,7 @@ public class LocalVoidItem extends Item implements PolymerItem {
         if (entity != null) {
             ItemStack stack = context.getStack();
             NbtCompound tag = new NbtCompound();
-            tag.putString("waystone", entity.getHash());
+            tag.putString(FabricWaystones.MOD_ID, entity.getHash());
             stack.setNbt(tag);
         }
         return super.useOnBlock(context);
@@ -95,13 +97,12 @@ public class LocalVoidItem extends Item implements PolymerItem {
             return;
         }
         tooltip.add(Text.translatable(
-            "fwaystones." + translationName + ".tooltip",
-            Text.literal(name).styled(style ->
-                style.withColor(TextColor.parse(Text.translatable("fwaystones." + translationName + ".tooltip.arg_color").getString()))
-            )
+                "fwaystones." + translationName + ".tooltip",
+                Text.literal(name).styled(style ->
+                        style.withColor(TextColor.parse(Text.translatable("fwaystones." + translationName + ".tooltip.arg_color").getString()))
+                )
         ));
     }
-
 
     @Override
     public Item getPolymerItem(ItemStack itemStack, @Nullable ServerPlayerEntity player) {

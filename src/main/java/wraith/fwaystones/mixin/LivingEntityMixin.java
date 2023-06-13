@@ -1,5 +1,7 @@
 package wraith.fwaystones.mixin;
 
+import io.netty.buffer.Unpooled;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.EntityStatuses;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.damage.DamageSource;
@@ -7,6 +9,7 @@ import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.packet.s2c.play.EntityStatusS2CPacket;
 import net.minecraft.registry.tag.DamageTypeTags;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -78,7 +81,7 @@ public abstract class LivingEntityMixin {
                 var waystone = FabricWaystones.WAYSTONE_STORAGE.getWaystoneEntity(hash);
                 if (waystone != null) {
                     player.fallDistance = 0;
-                    waystone.teleportPlayer(player, false, TeleportSources.LOCAL_VOID);
+                    waystone.teleportPlayer(player, false, TeleportSources.VOID_TOTEM);
                     teleported = true;
                 }
             }
