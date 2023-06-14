@@ -22,12 +22,12 @@ import wraith.fwaystones.util.Utils;
 
 import java.util.List;
 
-public class WaystoneDebuggerItem extends Item implements PolymerItem {
+public class WaystoneDebuggerItem extends TexturedPolymerItem {
 
     private static final int TOOLTIP_MESSAGE = Utils.getRandomIntInRange(1, 4);
 
     public WaystoneDebuggerItem(Settings settings) {
-        super(settings);
+        super(settings, Items.POISONOUS_POTATO, "item/waystone_debugger");
     }
 
     @Override
@@ -83,10 +83,5 @@ public class WaystoneDebuggerItem extends Item implements PolymerItem {
     public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context) {
         super.appendTooltip(stack, world, tooltip, context);
         tooltip.add(Text.translatable("fwaystones.debug.debugger_tooltip" + TOOLTIP_MESSAGE));
-    }
-
-    @Override
-    public Item getPolymerItem(ItemStack itemStack, @Nullable ServerPlayerEntity player) {
-        return Items.POISONOUS_POTATO;
     }
 }

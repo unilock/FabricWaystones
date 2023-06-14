@@ -1,5 +1,6 @@
 package wraith.fwaystones;
 
+import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import org.apache.logging.log4j.LogManager;
@@ -31,6 +32,7 @@ public class FabricWaystones implements ModInitializer {
     @Override
     public void onInitialize() {
         LOGGER.info("Is initializing.");
+        PolymerResourcePackUtils.addModAssets(MOD_ID);
         BlockRegistry.registerBlocks();
         BlockEntityRegistry.registerBlockEntities();
         ItemRegistry.init();

@@ -20,10 +20,10 @@ import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import java.util.HashSet;
 import java.util.List;
 
-public class ScrollOfInfiniteKnowledgeItem extends Item implements PolymerItem {
+public class ScrollOfInfiniteKnowledgeItem extends TexturedPolymerItem {
 
     public ScrollOfInfiniteKnowledgeItem(Settings settings) {
-        super(settings);
+        super(settings, Items.BOOK, "item/scroll_of_infinite_knowledge");
     }
 
     @Override
@@ -91,17 +91,5 @@ public class ScrollOfInfiniteKnowledgeItem extends Item implements PolymerItem {
                     )
             ));
         }
-    }
-
-    @Override
-    public Item getPolymerItem(ItemStack itemStack, @Nullable ServerPlayerEntity player) {
-        return Items.BOOK;
-    }
-
-    @Override
-    public ItemStack getPolymerItemStack(ItemStack itemStack, TooltipContext context, @Nullable ServerPlayerEntity player) {
-        var stack = PolymerItem.super.getPolymerItemStack(itemStack, context, player);
-        stack.addEnchantment(Enchantments.LURE, 2);
-        return stack;
     }
 }

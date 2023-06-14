@@ -1,14 +1,9 @@
 package wraith.fwaystones.item;
 
-import eu.pb4.polymer.core.api.item.PolymerItem;
-import net.minecraft.block.Block;
 import net.minecraft.client.item.TooltipContext;
-import net.minecraft.enchantment.Enchantments;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.registry.Registries;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
 import net.minecraft.world.World;
@@ -17,10 +12,10 @@ import wraith.fwaystones.block.WaystoneBlock;
 
 import java.util.List;
 
-public class WaystoneItem extends BlockItem implements PolymerItem {
+public class WaystoneItem extends TexturedPolymerBlockItem {
 
-    public WaystoneItem(Block block, Settings settings) {
-        super(block, settings);
+    public WaystoneItem(WaystoneBlock block, Settings settings) {
+        super(block, settings, block.getStyle().lower().getBlock().asItem(), "item/" + Registries.BLOCK.getId(block).getPath());
     }
 
     @Override
@@ -40,17 +35,5 @@ public class WaystoneItem extends BlockItem implements PolymerItem {
         ));
         tooltip.add(Text.translatable("fwaystones.waystone_tooltip.global").append(" ")
                 .append(Text.translatable("fwaystones.waystone_tooltip.global_" + (global ? "on" : "off"))));
-    }
-
-    @Override
-    public Item getPolymerItem(ItemStack itemStack, @Nullable ServerPlayerEntity player) {
-        return ((WaystoneBlock) this.getBlock()).getStyle().lower().getBlock().asItem();
-    }
-
-    @Override
-    public ItemStack getPolymerItemStack(ItemStack itemStack, TooltipContext context, @Nullable ServerPlayerEntity player) {
-        var stack = PolymerItem.super.getPolymerItemStack(itemStack, context, player);
-        stack.addEnchantment(Enchantments.LURE, 2);
-        return stack;
     }
 }

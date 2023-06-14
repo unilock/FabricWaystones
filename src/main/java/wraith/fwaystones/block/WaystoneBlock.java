@@ -33,8 +33,6 @@ import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
@@ -43,7 +41,7 @@ import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import wraith.fwaystones.gui.UniversalWaystoneGui;
 import wraith.fwaystones.integration.pinlib.PinlibPlugin;
-import wraith.fwaystones.item.LocalVoidItem;
+import wraith.fwaystones.item.VoidItem;
 import wraith.fwaystones.item.WaystoneDebuggerItem;
 import wraith.fwaystones.item.WaystoneScrollItem;
 import wraith.fwaystones.registry.BlockEntityRegistry;
@@ -257,7 +255,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable, Pol
             }
             return ActionResult.PASS;
         }
-        if (heldItem instanceof WaystoneScrollItem || heldItem instanceof LocalVoidItem || heldItem instanceof WaystoneDebuggerItem) {
+        if (heldItem instanceof WaystoneScrollItem || heldItem instanceof VoidItem || heldItem instanceof WaystoneDebuggerItem) {
             return ActionResult.PASS;
         }
 

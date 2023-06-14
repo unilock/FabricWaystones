@@ -17,12 +17,12 @@ import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.gui.UniversalWaystoneGui;
 import wraith.fwaystones.util.TeleportSources;
 
-public class PocketWormholeItem extends Item implements PolymerItem {
+public class PocketWormholeItem extends TexturedPolymerItem {
 
     private static final Text TITLE = Text.translatable("container." + FabricWaystones.MOD_ID + ".pocket_wormhole");
 
     public PocketWormholeItem(Settings settings) {
-        super(settings);
+        super(settings, Items.ENDER_PEARL, "item/pocket_wormhole");
     }
 
     @Override
@@ -31,16 +31,5 @@ public class PocketWormholeItem extends Item implements PolymerItem {
             UniversalWaystoneGui.open(serverPlayerEntity, TITLE, TeleportSources.POCKET_WORMHOLE);
         }
         return TypedActionResult.consume(user.getStackInHand(hand));
-    }
-
-    @Override
-    public Item getPolymerItem(ItemStack itemStack, @Nullable ServerPlayerEntity player) {
-        return Items.ENDER_PEARL;
-    }
-
-    public ItemStack getPolymerItemStack(ItemStack itemStack, TooltipContext context, @Nullable ServerPlayerEntity player) {
-        var stack = PolymerItem.super.getPolymerItemStack(itemStack, context, player);
-        stack.addEnchantment(Enchantments.LURE, 2);
-        return stack;
     }
 }

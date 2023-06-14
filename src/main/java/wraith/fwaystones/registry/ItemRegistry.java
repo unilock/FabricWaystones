@@ -7,6 +7,8 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.text.Text;
@@ -22,8 +24,8 @@ public final class ItemRegistry {
     private static final HashMap<String, Item> ITEMS = new HashMap<>();
     public static final ItemGroup WAYSTONE_GROUP = FabricItemGroup.builder().icon(() -> new ItemStack(BlockRegistry.WAYSTONE)).displayName(Text.translatable("itemGroup.fwaystones.fwaystones")).entries((enabledFeatures, entries) -> ITEMS.values().stream().map(ItemStack::new).forEach(entries::add)).build();
 
-
-    private ItemRegistry() {}
+    private ItemRegistry() {
+    }
 
     private static void registerItem(String id, Item item) {
         ITEMS.put(id, Registry.register(Registries.ITEM, Utils.ID(id), item));
@@ -56,4 +58,17 @@ public final class ItemRegistry {
         return ITEMS.getOrDefault(id, Items.AIR);
     }
 
+    public static boolean hasLearned(ItemStack stack) {
+        if (stack.isEmpty()) {
+            return false;
+        }
+        if (stack.getItem() instanceof WaystoneScrollItem) {
+            NbtCompound tag = stack.getNbt();
+            return tag != null && tag.contains(FabricWaystones.MOD_ID) && !tag.getList(FabricWaystones.MOD_ID, NbtElement.STRING_TYPE).isEmpty();
+        } else if (stack.getItem() instanceof LocalVoidItem) {
+            NbtCompound tag = stack.getNbt();
+            return tag != null && tag.contains(FabricWaystones.MOD_ID);
+        }
+        return false;
+    }
 }

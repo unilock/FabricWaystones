@@ -1,9 +1,7 @@
 package wraith.fwaystones.util;
 
 import com.mojang.datafixers.util.Pair;
-import eu.pb4.sgui.api.gui.SlotGuiInterface;
 import eu.pb4.sgui.virtual.VirtualScreenHandlerInterface;
-import net.minecraft.entity.damage.DamageSource;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
@@ -24,7 +22,7 @@ import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.gui.UniversalWaystoneGui;
-import wraith.fwaystones.item.LocalVoidItem;
+import wraith.fwaystones.item.VoidItem;
 import wraith.fwaystones.mixin.StructurePoolAccessor;
 
 import java.nio.charset.StandardCharsets;
@@ -314,7 +312,7 @@ public final class Utils {
             return gui.getSource();
         } else {
             for (var hand : Hand.values()) {
-                if (!(player.getStackInHand(hand).getItem() instanceof LocalVoidItem)) continue;
+                if (!(player.getStackInHand(hand).getItem() instanceof VoidItem)) continue;
                 return TeleportSources.LOCAL_VOID;
             }
         }

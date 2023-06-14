@@ -1,8 +1,8 @@
 package wraith.fwaystones.item;
 
-import eu.pb4.polymer.core.api.item.PolymerItem;
+import eu.pb4.polymer.resourcepack.api.PolymerModelData;
+import eu.pb4.polymer.resourcepack.api.PolymerResourcePackUtils;
 import net.minecraft.client.item.TooltipContext;
-import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -17,20 +17,41 @@ import net.minecraft.text.Text;
 import net.minecraft.text.TextColor;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
-import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import wraith.fwaystones.FabricWaystones;
+import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import wraith.fwaystones.block.WaystoneBlock;
+import wraith.fwaystones.registry.ItemRegistry;
 
 import java.util.HashSet;
 import java.util.List;
 
-public class WaystoneScrollItem extends Item implements PolymerItem {
+public class WaystoneScrollItem extends TexturedPolymerItem {
+
+    private PolymerModelData modelDataEmpty, modelDataLearned;
 
     public WaystoneScrollItem(Settings settings) {
-        super(settings);
+        super(settings, Items.FLOWER_BANNER_PATTERN, "item/waystone_scroll");
+    }
+
+    @Override
+    protected void registerPolymerModel(Item item, String modelPath) {
+        super.registerPolymerModel(item, modelPath);
+
+        this.modelDataEmpty = PolymerResourcePackUtils.requestModel(item, new Identifier(FabricWaystones.MOD_ID, "item/empty_waystone_scroll"));
+        this.modelDataLearned = PolymerResourcePackUtils.requestModel(item, new Identifier(FabricWaystones.MOD_ID, "item/learned_waystone_scroll"));
+    }
+
+    @Override
+    public int getPolymerCustomModelData(ItemStack itemStack, @Nullable ServerPlayerEntity player) {
+        if (ItemRegistry.hasLearned(itemStack)) {
+            return this.modelDataLearned.value();
+        } else {
+            return this.modelDataEmpty.value();
+        }
     }
 
     @Override
@@ -139,17 +160,5 @@ public class WaystoneScrollItem extends Item implements PolymerItem {
             return "item.fwaystones.empty_scroll";
         }
         return "item.fwaystones.waystone_scroll";
-    }
-
-    @Override
-    public Item getPolymerItem(ItemStack itemStack, @Nullable ServerPlayerEntity player) {
-        return Items.FLOWER_BANNER_PATTERN;
-    }
-
-    @Override
-    public ItemStack getPolymerItemStack(ItemStack itemStack, TooltipContext context, @Nullable ServerPlayerEntity player) {
-        var stack = PolymerItem.super.getPolymerItemStack(itemStack, context, player);
-        stack.addEnchantment(Enchantments.LURE, 2);
-        return stack;
     }
 }

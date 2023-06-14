@@ -17,12 +17,12 @@ import wraith.fwaystones.FabricWaystones;
 import wraith.fwaystones.gui.UniversalWaystoneGui;
 import wraith.fwaystones.util.TeleportSources;
 
-public class AbyssWatcherItem extends Item implements PolymerItem {
+public class AbyssWatcherItem extends TexturedPolymerItem {
 
     private static final Text TITLE = Text.translatable("container." + FabricWaystones.MOD_ID + ".abyss_watcher");
 
     public AbyssWatcherItem(Settings settings) {
-        super(settings);
+        super(settings, Items.EYE_ARMOR_TRIM_SMITHING_TEMPLATE, "item/abyss_watcher");
     }
 
     @Override
@@ -33,14 +33,4 @@ public class AbyssWatcherItem extends Item implements PolymerItem {
         return TypedActionResult.consume(user.getStackInHand(hand));
     }
 
-    @Override
-    public Item getPolymerItem(ItemStack itemStack, @Nullable ServerPlayerEntity player) {
-        return Items.ENDER_EYE;
-    }
-
-    public ItemStack getPolymerItemStack(ItemStack itemStack, TooltipContext context, @Nullable ServerPlayerEntity player) {
-        var stack = PolymerItem.super.getPolymerItemStack(itemStack, context, player);
-        stack.addEnchantment(Enchantments.LURE, 2);
-        return stack;
-    }
 }
