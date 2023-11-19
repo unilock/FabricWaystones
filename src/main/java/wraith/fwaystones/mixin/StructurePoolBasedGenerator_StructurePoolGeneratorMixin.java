@@ -88,7 +88,7 @@ public class StructurePoolBasedGenerator_StructurePoolGeneratorMixin implements 
             MutableObject<VoxelShape> mutableObject,
             BlockBox blockBox,
             int i,
-            Iterator var15,
+            Iterator<StructureTemplate.StructureBlockInfo> var15,
             StructureTemplate.StructureBlockInfo structureBlockInfo,
             Direction direction,
             BlockPos blockPos2,
@@ -96,11 +96,10 @@ public class StructurePoolBasedGenerator_StructurePoolGeneratorMixin implements 
             int j,
             int k,
             RegistryKey<StructurePool> registryKey,
-            Optional optional,
+            Optional<? extends RegistryEntry<StructurePool>> optional,
             RegistryEntry<StructurePool> registryEntry,
             RegistryEntry<StructurePool> registryEntry2,
-            MutableObject mutableObject2,
-            boolean bl2,
+            MutableObject<VoxelShape> mutableObject2,
             List<StructurePoolElement> list
     ) {
         if (!FabricWaystones.CONFIG.worldgen.generate_in_villages() ||
