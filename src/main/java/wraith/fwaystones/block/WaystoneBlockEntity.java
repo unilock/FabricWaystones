@@ -1,12 +1,14 @@
 package wraith.fwaystones.block;
 
-import eu.pb4.holograms.api.elements.SpacingHologramElement;
-import eu.pb4.holograms.api.holograms.WorldHologram;
 import eu.pb4.polymer.core.api.utils.PolymerObject;
+import eu.pb4.polymer.virtualentity.api.ElementHolder;
+import eu.pb4.polymer.virtualentity.api.attachment.ChunkAttachment;
+import eu.pb4.polymer.virtualentity.api.elements.TextDisplayElement;
 import net.fabricmc.fabric.api.dimension.v1.FabricDimensions;
 import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.LootableContainerBlockEntity;
+import net.minecraft.entity.decoration.DisplayEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventories;
@@ -34,7 +36,6 @@ import wraith.fwaystones.access.PlayerEntityMixinAccess;
 import wraith.fwaystones.access.WaystoneValue;
 import wraith.fwaystones.item.AbyssWatcherItem;
 import wraith.fwaystones.registry.BlockEntityRegistry;
-import wraith.fwaystones.registry.ItemRegistry;
 import wraith.fwaystones.util.TeleportSources;
 import wraith.fwaystones.util.Utils;
 
@@ -55,7 +56,9 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
     private float turningSpeedR = 2;
     private long tickDelta = 0;
 
-    private WorldHologram hologram;
+    private ElementHolder elementHolder;
+    //private ItemDisplayElement itemDisplayElement;
+    private TextDisplayElement textDisplayElement;
 
     public WaystoneBlockEntity(BlockPos pos, BlockState state) {
         super(BlockEntityRegistry.WAYSTONE_BLOCK_ENTITY, pos, state);
@@ -285,16 +288,35 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
             lookingRotR = rotClamp(360, lookingRotR);
 
 
-            if (this.hologram == null) {
-                this.hologram = new WorldHologram((ServerWorld) this.world, Vec3d.ofCenter(this.pos));
-                this.hologram.addText(Text.literal(this.getWaystoneName()), true);
-                this.hologram.addItemStack(new ItemStack(ItemRegistry.get("abyss_watcher")), true);
-                this.hologram.addElement(new SpacingHologramElement(1));
-                this.hologram.show();
+            if (this.elementHolder == null) {
+                this.elementHolder = new ElementHolder();
+
+                /*
+                this.itemDisplayElement = new ItemDisplayElement();
+                this.itemDisplayElement.setBillboardMode(DisplayEntity.BillboardMode.CENTER);
+                this.itemDisplayElement.setDisplaySize(1.0F, 1.0F);
+                this.itemDisplayElement.setViewRange(0.3F);
+                this.itemDisplayElement.setOffset(new Vec3d(0.0, 1.0, 0.0));
+                this.itemDisplayElement.setItem(new ItemStack(ItemRegistry.get("abyss_watcher")));
+                this.itemDisplayElement.setModelTransformation(ModelTransformationMode.GUI);
+                this.elementHolder.addElement(this.itemDisplayElement);
+                 */
+
+                this.textDisplayElement = new TextDisplayElement();
+                this.textDisplayElement.setBillboardMode(DisplayEntity.BillboardMode.CENTER);
+                this.textDisplayElement.setDisplaySize(1.0F, 1.0F);
+                this.textDisplayElement.setViewRange(0.3F);
+                this.textDisplayElement.setOffset(new Vec3d(0.0, 1.0, 0.0));
+                this.textDisplayElement.setText(Text.literal(this.getWaystoneName()));
+                this.elementHolder.addElement(this.textDisplayElement);
+
+                ChunkAttachment.of(this.elementHolder, (ServerWorld) world, pos);
             }
-        } else if (this.hologram != null) {
-            this.hologram.hide();
-            this.hologram = null;
+
+            elementHolder.tick();
+        } else if (this.elementHolder != null) {
+            this.elementHolder.destroy();
+            this.elementHolder = null;
         }
 
         if (tickDelta >= 360) {
@@ -433,8 +455,8 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
     public void setName(String name) {
         this.name = name;
-        if (this.hologram != null) {
-            this.hologram.setText(0, Text.literal(this.getWaystoneName()), true);
+        if (this.elementHolder != null) {
+            this.textDisplayElement.setText(Text.literal(this.getWaystoneName()));
         }
         markDirty();
     }
@@ -538,9 +560,10 @@ public class WaystoneBlockEntity extends LootableContainerBlockEntity implements
 
     @Override
     public void markRemoved() {
-        if (this.hologram != null) {
-            this.hologram.hide();
+        if (this.elementHolder != null) {
+            this.elementHolder.destroy();
         }
+        this.elementHolder = null;
         super.markRemoved();
     }
 }

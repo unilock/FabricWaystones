@@ -50,11 +50,10 @@ dependencies {
 	include "io.wispforest:owo-sentinel:${project.owo_version}"
 
 	modImplementation include("eu.pb4:sgui:${project.sgui_version}")
-	modImplementation include("eu.pb4:hologram-api:${project.hologram_api_version}")
-	modImplementation include("eu.pb4:polymer-common:${project.polymer_version}")
 	modImplementation include("eu.pb4:polymer-core:${project.polymer_version}")
-	modImplementation include("eu.pb4:polymer-resource-pack:${project.polymer_version}")
 	modImplementation include("eu.pb4:polymer-blocks:${project.polymer_version}")
+	modImplementation include("eu.pb4:polymer-resource-pack:${project.polymer_version}")
+	modImplementation include("eu.pb4:polymer-virtual-entity:${project.polymer_version}")
 	modImplementation include("xyz.nucleoid:server-translations-api:${project.server_translations_api_version}")
 	modImplementation include("me.lucko:fabric-permissions-api:${project.fabric_permissions_api_version}")
 }
