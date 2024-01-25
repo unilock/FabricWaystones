@@ -97,7 +97,7 @@ public class VoidItem extends TexturedPolymerItem {
         tooltip.add(Text.translatable(
                 "fwaystones." + translationName + ".tooltip",
                 Text.literal(name).styled(style ->
-                        style.withColor(TextColor.parse(Text.translatable("fwaystones." + translationName + ".tooltip.arg_color").getString()))
+                        style.withColor(TextColor.parse(Text.translatable("fwaystones." + translationName + ".tooltip.arg_color").getString()).result().get())
                 )
         ));
     }

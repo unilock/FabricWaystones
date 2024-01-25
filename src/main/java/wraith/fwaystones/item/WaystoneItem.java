@@ -30,7 +30,7 @@ public class WaystoneItem extends TexturedPolymerBlockItem {
         tooltip.add(Text.translatable(
                 "fwaystones.waystone_tooltip.name",
                 Text.literal(name).styled(style ->
-                        style.withColor(TextColor.parse(Text.translatable("fwaystones.waystone_tooltip.name.arg_color").getString()))
+                        style.withColor(TextColor.parse(Text.translatable("fwaystones.waystone_tooltip.name.arg_color").getString()).result().get())
                 )
         ));
         tooltip.add(Text.translatable("fwaystones.waystone_tooltip.global").append(" ")

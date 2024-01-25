@@ -87,7 +87,7 @@ public class WaystoneScrollItem extends TexturedPolymerItem {
                 text = Text.translatable(
                         "fwaystones.learned.multiple",
                         Text.literal(String.valueOf(learned)).styled(style ->
-                                style.withColor(TextColor.parse(Text.translatable("fwaystones.learned.multiple.arg_color").getString()))
+                                style.withColor(TextColor.parse(Text.translatable("fwaystones.learned.multiple.arg_color").getString()).result().get())
                         )
                 );
             } else {
@@ -147,7 +147,7 @@ public class WaystoneScrollItem extends TexturedPolymerItem {
             tooltip.add(Text.translatable(
                     "fwaystones.scroll.tooltip",
                     Text.literal(String.valueOf(size)).styled(style ->
-                            style.withColor(TextColor.parse(Text.translatable("fwaystones.scroll.tooltip.arg_color").getString()))
+                            style.withColor(TextColor.parse(Text.translatable("fwaystones.scroll.tooltip.arg_color").getString()).result().get())
                     )
             ));
         }

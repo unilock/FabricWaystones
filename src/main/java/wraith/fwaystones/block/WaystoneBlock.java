@@ -1,5 +1,6 @@
 package wraith.fwaystones.block;
 
+import com.mojang.serialization.MapCodec;
 import eu.pb4.polymer.core.api.block.PolymerBlock;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.*;
@@ -56,6 +57,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable, Pol
     public static final EnumProperty<DoubleBlockHalf> HALF = Properties.DOUBLE_BLOCK_HALF;
     public static final BooleanProperty MOSSY = BooleanProperty.of("mossy");
     public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
+    public static final MapCodec<WaystoneBlock> CODEC = createCodec(WaystoneBlock::new);
 
 //    protected static final VoxelShape VOXEL_SHAPE_TOP;
 //    protected static final VoxelShape VOXEL_SHAPE_BOTTOM;
@@ -84,6 +86,10 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable, Pol
 
     private final WaystoneStyle style;
 
+    public WaystoneBlock(AbstractBlock.Settings settings) {
+        this(null, settings);
+    }
+
     public WaystoneBlock(WaystoneStyle style, AbstractBlock.Settings settings) {
         super(settings);
         setDefaultState(getStateManager().getDefaultState().with(HALF, DoubleBlockHalf.LOWER).with(FACING, Direction.NORTH).with(MOSSY, false).with(WATERLOGGED, false).with(ACTIVE, false).with(GENERATED, false));
@@ -100,6 +106,10 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable, Pol
             pos = pos.down();
         }
         return world.getBlockEntity(pos) instanceof WaystoneBlockEntity waystone ? waystone : null;
+    }
+
+    public MapCodec<WaystoneBlock> getCodec() {
+        return CODEC;
     }
 
     @Override
@@ -173,7 +183,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable, Pol
 //    }
 
     @Override
-    public void onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
+    public BlockState onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
         BlockPos topPos;
         BlockPos botPos;
         if (state.get(HALF) == DoubleBlockHalf.UPPER) {
@@ -197,7 +207,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable, Pol
                     ItemScatterer.spawn(world, (double) topPos.getX() + 0.5D, (double) topPos.getY() + 0.5D, (double) topPos.getZ() + 0.5D, new ItemStack(Items.VINE));
                 }
             } else {
-                waystone.checkLootInteraction(player);
+                waystone.generateLoot(player);
             }
         }
 
@@ -205,7 +215,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable, Pol
         world.removeBlock(botPos, false);
         world.updateNeighbors(topPos, Blocks.AIR);
 
-        super.onBreak(world, pos, state, player);
+        return super.onBreak(world, pos, state, player);
     }
 
     @Override
@@ -287,7 +297,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable, Pol
                                     "fwaystones.missing_discover_item",
                                     discoverAmount,
                                     Text.translatable(discoverItem.getTranslationKey()).styled(style ->
-                                            style.withColor(TextColor.parse(Text.translatable("fwaystones.missing_discover_item.arg_color").getString()))
+                                            style.withColor(TextColor.parse(Text.translatable("fwaystones.missing_discover_item.arg_color").getString()).result().get())
                                     )
                             ), false);
                             return ActionResult.FAIL;
@@ -297,7 +307,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable, Pol
                                     "fwaystones.discover_item_paid",
                                     discoverAmount,
                                     Text.translatable(discoverItem.getTranslationKey()).styled(style ->
-                                            style.withColor(TextColor.parse(Text.translatable("fwaystones.discover_item_paid.arg_color").getString()))
+                                            style.withColor(TextColor.parse(Text.translatable("fwaystones.discover_item_paid.arg_color").getString()).result().get())
                                     )
                             ), false);
                         }
@@ -305,7 +315,7 @@ public class WaystoneBlock extends BlockWithEntity implements Waterloggable, Pol
                     player.sendMessage(Text.translatable(
                             "fwaystones.discover_waystone",
                             Text.literal(blockEntity.getWaystoneName()).styled(style ->
-                                    style.withColor(TextColor.parse(Text.translatable("fwaystones.discover_waystone.arg_color").getString()))
+                                    style.withColor(TextColor.parse(Text.translatable("fwaystones.discover_waystone.arg_color").getString()).result().get())
                             )
                     ), false);
                 }

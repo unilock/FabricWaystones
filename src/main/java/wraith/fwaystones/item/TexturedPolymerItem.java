@@ -35,7 +35,7 @@ public class TexturedPolymerItem extends SimplePolymerItem {
     public ItemStack getPolymerItemStack(ItemStack itemStack, TooltipContext context, @Nullable ServerPlayerEntity player) {
         var stack = super.getPolymerItemStack(itemStack, context, player);
 
-        if (player != null && !PolymerResourcePackUtils.hasPack(player)) {
+        if (player != null && !PolymerResourcePackUtils.hasMainPack(player)) {
             stack.addEnchantment(Enchantments.LURE, 2);
         }
 
